@@ -1,25 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import Card from './components/Card/Card';
+import { fetchCountryFlags } from './components/api/api';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [countryFlags, setCountryFlags] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const getFlags = async () => {
+            try {
+                const flags = await fetchCountryFlags();
+                setCountryFlags(flags);
+            } catch (err) {
+                console.error("Error fetching data: ", err.message);
+                setError(err.message);
+                setCountryFlags([]); // Set to an empty array on error to avoid map on undefined
+            }
+        };
+        getFlags();
+    }, []);
+
+    return (
+        <Router>
+            <div style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {error ? (
+                        <p>Error loading flags: {error}</p>
+                    ) : countryFlags.length > 0 ? (
+                        countryFlags.map((flag, index) => (
+                            <Card key={index} name={flag.name} img={flag.flag} />
+                        ))
+                    ) : (
+                        <p>Loading...</p>
+                    )}
+                </div>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
